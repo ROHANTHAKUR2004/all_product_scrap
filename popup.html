@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 10px;
+      width: 330px;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    #results {
+      margin-top: 10px;
+      max-height: 350px;
+      overflow-y: auto;
+      font-size: 12px;
+    }
+
+    .item {
+      border-bottom: 1px solid #e5e7eb;
+      padding: 8px 0;
+    }
+
+    .title {
+      font-weight: bold;
+      color: #2563eb;
+      cursor: pointer;
+    }
+
+    .title:hover {
+      text-decoration: underline;
+    }
+
+    .price {
+      color: #16a34a;
+    }
+
+    .seller {
+      color: #555;
+    }
+
+    .link {
+      font-size: 11px;
+      color: #6b7280;
+      word-break: break-all;
+    }
+  </style>
+</head>
+
+<body>
+  <button id="scrapeBtn">Scrape & Show</button>
+  <div id="results"></div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
