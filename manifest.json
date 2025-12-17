@@ -2,14 +2,13 @@
   "manifest_version": 3,
   "name": "eBay Sold Listings Scraper",
   "version": "1.0",
-  "description": "Scrape sold eBay listings and save to Google Sheets",
-  "permissions": ["activeTab", "tabs"],
+  "permissions": ["activeTab"],
   "host_permissions": [
     "https://www.ebay.com/*",
     "https://script.google.com/*"
   ],
-  "action": {
-    "default_popup": "popup.html"
+  "background": {
+    "service_worker": "background.js"
   },
   "content_scripts": [
     {
