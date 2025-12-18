@@ -7,17 +7,36 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     try {
       const linkEl = card.querySelector("a.s-card__link");
       const link = linkEl?.href;
+      if (!link) return;
 
-      const title = card.querySelector(".s-card__title")?.innerText;
-      const price = card.querySelector(".s-card__price")?.innerText;
+      const titleEl = card.querySelector(".s-card__title");
+      const title = titleEl ? titleEl.innerText.trim() : null;
+      if (!title) return;
 
-      const sellerEl = card.querySelector(".su-styled-text.primary.large");
-      const sellerPositive = sellerEl ? parseFloat(sellerEl.innerText) : null;
+      const priceEl = card.querySelector(".s-card__price");
+      const price = priceEl ? priceEl.innerText.trim() : "";
 
-      const itemIdMatch = link?.match(/\/itm\/(\d+)/);
+      // MATCH ITEM ID
+      const itemIdMatch = link.match(/\/itm\/(\d+)/);
       const itemId = itemIdMatch ? itemIdMatch[1] : "";
+      if (!itemId) return;
 
-      if (!link || !title || sellerPositive < 95) return;
+      // GET SECONDARY BLOCK (same as your original)
+      const secondary = card.querySelector(".su-card-container__attributes__secondary");
+      if (!secondary) return;
+
+      // ROBUST SELLER POSITIVE EXTRACTION
+      let sellerPositive = null;
+      secondary.querySelectorAll("*").forEach(el => {
+        const txt = el.innerText?.trim();
+        if (txt && txt.match(/\d+(\.\d+)?%/)) {
+          const match = txt.match(/(\d+(\.\d+)?)/);
+          if (match) sellerPositive = parseFloat(match[1]);
+        }
+      });
+
+      if (!sellerPositive) return;           // skip if not found
+      if (sellerPositive < 95) return;       // seller threshold
 
       results.push({
         itemId,
@@ -26,7 +45,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         price,
         sellerPositive
       });
-    } catch {}
+    } catch (err) {
+      console.warn("Error parsing card:", err);
+    }
   });
 
   sendResponse(results);
