@@ -6,16 +6,17 @@ const loginBtn = document.getElementById("loginBtn");
 const scrapeBtn = document.getElementById("scrapeBtn");
 const resultsDiv = document.getElementById("results");
 
+// AUTH CHECK
 function checkAuth() {
-  const user = JSON.parse(localStorage.getItem("user"));
-
-  if (user) {
-    loginSection.style.display = "none";
-    scrapeSection.style.display = "block";
-  } else {
-    loginSection.style.display = "block";
-    scrapeSection.style.display = "none";
-  }
+  chrome.storage.local.get("user", (data) => {
+    if (data.user) {
+      loginSection.style.display = "none";
+      scrapeSection.style.display = "block";
+    } else {
+      loginSection.style.display = "block";
+      scrapeSection.style.display = "none";
+    }
+  });
 }
 
 checkAuth();
@@ -33,7 +34,7 @@ loginBtn.addEventListener("click", async () => {
   const userId = crypto.randomUUID();
   const userData = { userId, name, email };
 
-  localStorage.setItem("user", JSON.stringify(userData));
+  chrome.storage.local.set({ user: userData });
 
   await fetch(API_URL, {
     method: "POST",
@@ -43,39 +44,42 @@ loginBtn.addEventListener("click", async () => {
   checkAuth();
 });
 
-// SCRAPE
+// SCRAPE BUTTON
 scrapeBtn.addEventListener("click", async () => {
   resultsDiv.innerHTML = "Scraping...";
 
-  const user = JSON.parse(localStorage.getItem("user"));
+  chrome.storage.local.get("user", async (data) => {
+    const user = data.user;
+    if (!user) return;
 
-  const [tab] = await chrome.tabs.query({
-    active: true,
-    currentWindow: true
-  });
-
-  chrome.tabs.sendMessage(tab.id, { action: "SCRAPE" }, async (data) => {
-    if (!data?.length) {
-      resultsDiv.innerHTML = "No items found";
-      return;
-    }
-
-    const payload = data.map(item => ({
-      userId: user.userId,
-      ...item
-    }));
-
-    resultsDiv.innerHTML = "";
-    payload.forEach(item => {
-      const div = document.createElement("div");
-      div.className = "item";
-      div.innerHTML = `${item.title}<br>${item.price}<br>${item.sellerPositive}%`;
-      resultsDiv.appendChild(div);
+    const [tab] = await chrome.tabs.query({
+      active: true,
+      currentWindow: true
     });
 
-    await fetch(API_URL, {
-      method: "POST",
-      body: JSON.stringify(payload)
+    chrome.tabs.sendMessage(tab.id, { action: "SCRAPE" }, async (result) => {
+      if (!result?.length) {
+        resultsDiv.innerHTML = "No items found";
+        return;
+      }
+
+      const payload = result.map(item => ({
+        userId: user.userId,
+        ...item
+      }));
+
+      resultsDiv.innerHTML = "";
+      payload.forEach(item => {
+        const div = document.createElement("div");
+        div.className = "item";
+        div.innerHTML = `${item.title}<br>${item.price}<br>${item.sellerPositive}%`;
+        resultsDiv.appendChild(div);
+      });
+
+      await fetch(API_URL, {
+        method: "POST",
+        body: JSON.stringify(payload)
+      });
     });
   });
 });
