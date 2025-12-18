@@ -2,64 +2,27 @@
 <html>
 <head>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 10px;
-      width: 330px;
-    }
-
-    button {
-      width: 100%;
-      padding: 10px;
-      background: #2563eb;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 14px;
-    }
-
-    #results {
-      margin-top: 10px;
-      max-height: 350px;
-      overflow-y: auto;
-      font-size: 12px;
-    }
-
-    .item {
-      border-bottom: 1px solid #e5e7eb;
-      padding: 8px 0;
-    }
-
-    .title {
-      font-weight: bold;
-      color: #2563eb;
-      cursor: pointer;
-    }
-
-    .title:hover {
-      text-decoration: underline;
-    }
-
-    .price {
-      color: #16a34a;
-    }
-
-    .seller {
-      color: #555;
-    }
-
-    .link {
-      font-size: 11px;
-      color: #6b7280;
-      word-break: break-all;
-    }
+    body { font-family: Arial; width: 330px; padding: 15px; }
+    input { width: 100%; padding: 8px; margin: 6px 0; }
+    button { width: 100%; padding: 10px; background: #2563eb; color: white; border: none; }
+    #results { margin-top: 10px; max-height: 250px; overflow-y: auto; }
+    .item { border-bottom: 1px solid #ccc; padding: 5px; }
   </style>
 </head>
 
 <body>
-  <button id="scrapeBtn">Scrape & Show</button>
-  <div id="results"></div>
+
+  <div id="loginSection">
+    <h3>Login</h3>
+    <input id="nameInput" placeholder="Name">
+    <input id="emailInput" placeholder="Email">
+    <button id="loginBtn">Login</button>
+  </div>
+
+  <div id="scrapeSection" style="display:none;">
+    <button id="scrapeBtn">Scrape & Show</button>
+    <div id="results"></div>
+  </div>
 
   <script src="popup.js"></script>
 </body>

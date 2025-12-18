@@ -1,11 +1,53 @@
-const resultsDiv = document.getElementById("results");
+const API_URL = "https://script.google.com/macros/s/AKfycbyXTilGNh3NZn2low2EN8MVreARnPJu_ralUCr7yHVQiQbrqytxPypvTDlKuIyb7KWnPg/exec";
+
+const loginSection = document.getElementById("loginSection");
+const scrapeSection = document.getElementById("scrapeSection");
+const loginBtn = document.getElementById("loginBtn");
 const scrapeBtn = document.getElementById("scrapeBtn");
+const resultsDiv = document.getElementById("results");
 
-// 🔴 PUT YOUR APPS SCRIPT URL HERE
-const SHEET_API_URL = "https://script.google.com/macros/s/AKfycbzzywVf9a3Zi52vvyGMmcrzX3Xz5n_37PgQWjqK2A0MB_NulnSk9Js-g2Tnv_R4T0zL/exec";
+function checkAuth() {
+  const user = JSON.parse(localStorage.getItem("user"));
 
+  if (user) {
+    loginSection.style.display = "none";
+    scrapeSection.style.display = "block";
+  } else {
+    loginSection.style.display = "block";
+    scrapeSection.style.display = "none";
+  }
+}
+
+checkAuth();
+
+// LOGIN
+loginBtn.addEventListener("click", async () => {
+  const name = document.getElementById("nameInput").value;
+  const email = document.getElementById("emailInput").value;
+
+  if (!name || !email) {
+    alert("Enter name & email");
+    return;
+  }
+
+  const userId = crypto.randomUUID();
+  const userData = { userId, name, email };
+
+  localStorage.setItem("user", JSON.stringify(userData));
+
+  await fetch(API_URL, {
+    method: "POST",
+    body: JSON.stringify(userData)
+  });
+
+  checkAuth();
+});
+
+// SCRAPE
 scrapeBtn.addEventListener("click", async () => {
   resultsDiv.innerHTML = "Scraping...";
+
+  const user = JSON.parse(localStorage.getItem("user"));
 
   const [tab] = await chrome.tabs.query({
     active: true,
@@ -13,43 +55,27 @@ scrapeBtn.addEventListener("click", async () => {
   });
 
   chrome.tabs.sendMessage(tab.id, { action: "SCRAPE" }, async (data) => {
-    if (!data || !data.length) {
-      resultsDiv.innerHTML = "No data found";
+    if (!data?.length) {
+      resultsDiv.innerHTML = "No items found";
       return;
     }
 
-    // Show results in popup
+    const payload = data.map(item => ({
+      userId: user.userId,
+      ...item
+    }));
+
     resultsDiv.innerHTML = "";
-    data.forEach(item => {
+    payload.forEach(item => {
       const div = document.createElement("div");
       div.className = "item";
-
-      div.innerHTML = `
-        <div><b>${item.title}</b></div>
-        <div style="font-size:11px">${item.link}</div>
-        <div style="color:green">Price: ${item.price}</div>
-        <div>Seller Positive: ${item.sellerPositive}%</div>
-        <hr/>
-      `;
-
+      div.innerHTML = `${item.title}<br>${item.price}<br>${item.sellerPositive}%`;
       resultsDiv.appendChild(div);
     });
 
-    // 🔥 SEND TO GOOGLE SHEETS
-    try {
-      const res = await fetch(SHEET_API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
-      });
-
-      if (res.ok) {
-        console.log("Saved to Google Sheets");
-      } else {
-        console.error("Failed to save");
-      }
-    } catch (err) {
-      console.error("Error sending to Sheets:", err);
-    }
+    await fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify(payload)
+    });
   });
 });
